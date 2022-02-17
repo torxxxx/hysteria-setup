@@ -2,13 +2,15 @@
 INSTALL_PATH=$HOME/hysteria
 BINARY_PATH=$INSTALL_PATH/hysteria-linux-amd64
 SERVICE_PATH=$INSTALL_PATH/hysteria.service
+LATEST_RELEASE_SITE=$(curl https://github.com/HyNetwork/hysteria/releases/latest  | grep -oP "http.+.\d{1}")
 if [ ! -d $INSTALL_PATH ]
 then
 	mkdir $INSTALL_PATH
 fi
 if [ ! -f $BINARY_PATH ]
 then
-	wget -P $INSTALL_PATH https://github.com/HyNetwork/hysteria/releases/download/v0.9.1/hysteria-linux-amd64
+	DOWNLOAD_LINKS_SITE=$(curl $LATEST_RELEASE_SITE | grep -oP "/HyNetwork.+hysteria-linux-amd64")
+	wget -P $INSTALL_PATH https://github.com$DOWNLOAD_LINKS_SITE
 fi
 openssl req -newkey rsa:2048 -nodes -keyout $INSTALL_PATH/my.key -x509 -days 365 -out $INSTALL_PATH/my.crt
 cat <<-EOF > $INSTALL_PATH/config.json

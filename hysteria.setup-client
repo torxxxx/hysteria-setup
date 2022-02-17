@@ -3,6 +3,7 @@ INSTALL_PATH=$HOME/env/hysteria
 BINARY_PATH=$INSTALL_PATH/hysteria-linux-amd64
 SERVICE_PATH=$INSTALL_PATH/hysteria.service
 SERVICE_V6_PATH=$INSTALL_PATH/hysteriav6.service
+LATEST_RELEASE_SITE=$(curl https://github.com/HyNetwork/hysteria/releases/latest  | grep -oP "http.+.\d{1}")
 if [ ! $1 ]
 then
  echo "Please input the ip address and ports!" 
@@ -17,7 +18,8 @@ then
 fi
 if [ ! -f $BINARY_PATH ]
 then
-	wget -P $INSTALL_PATH https://github.com/HyNetwork/hysteria/releases/download/v0.9.2/hysteria-linux-amd64
+	DOWNLOAD_LINKS_SITE=$(curl $LATEST_RELEASE_SITE | grep -oP "/HyNetwork.+hysteria-linux-amd64")
+	wget -P $INSTALL_PATH https://github.com$DOWNLOAD_LINKS_SITE
 fi
 cat <<-EOF > $INSTALL_PATH/config.json
 {
