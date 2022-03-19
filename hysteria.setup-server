@@ -2,7 +2,11 @@
 INSTALL_PATH=$HOME/hysteria
 BINARY_PATH=$INSTALL_PATH/hysteria-linux-amd64
 SERVICE_PATH=$INSTALL_PATH/hysteria.service
+IPV6=$(hostname -I | awk '{print $2}')
 LATEST_RELEASE_SITE=$(curl https://github.com/HyNetwork/hysteria/releases/latest  | grep -oP "http.+.\d{1}")
+PASSWORD=$(openssl rand -base64 40)
+OBFS=$(openssl rand -base64 14)
+ALPN=$(openssl rand -base64 8)
 if [ ! -d $INSTALL_PATH ]
 then
 	mkdir $INSTALL_PATH
@@ -18,17 +22,16 @@ cat <<-EOF > $INSTALL_PATH/config.json
   "listen": ":20000",
   "cert": "$INSTALL_PATH/my.crt", 
   "key": "$INSTALL_PATH/my.key", 
-  "obfs": "Hello Hysteria",
   "up_mbps": 1000,
   "down_mbps": 1000,
-  "obfs": "Hello Hysteria",
+  "obfs": "$OBFS",
   "auth": { 
     "mode": "password", 
     "config": {
-      "password": "Hello Hysteria"
+      "password": "$PASSWORD"
     }
   },
-  "alpn": "ayaya",
+  "alpn": "$ALPN",
   "prometheus_listen": ":8080", 
   "recv_window_conn": 65536000,
   "recv_window_client": 262144000,
@@ -53,9 +56,62 @@ LimitNOFILE=102400
 [Install]
 WantedBy=multi-user.target
 EOF
+cat <<-EOF > $INSTALL_PATH/config-client.json
+{
+  "server": "$IPV6",
+  "up_mbps": 1000, 
+  "down_mbps": 1000, 
+  "socks5": {
+    "listen": "127.0.0.1:1080", 
+    "timeout": 300, 
+    "disable_udp": false, 
+    "user": "me", 
+    "password": "lmaolmao" 
+  },
+  "tproxy_tcp": {
+    "listen": "127.0.0.1:12345", 
+    "timeout": 300 
+  },
+  "tproxy_udp": {
+    "listen": "127.0.0.1:12346", 
+    "timeout": 60 
+  },
+  "obfs": "$OBFS",
+  "auth_str": "$PASSWORD", 
+  "alpn": "$ALPN", 
+  "insecure": true,
+  "recv_window_conn": 15728640,
+  "recv_window": 67108864
+}
+EOF
+cat <<-EOF > $INSTALL_PATH/configv6-client.json
+{
+  "server": "$IPV6",
+  "up_mbps": 1000, 
+  "down_mbps": 1000, 
+  "tproxy_tcp": {
+    "listen": "[::1]:12345", 
+    "timeout": 300 
+  },
+  "tproxy_udp": {
+    "listen": "[::1]:12346", 
+    "timeout": 60 
+  },
+  "obfs": "$OBFS",
+  "auth_str": "$PASSWORD", 
+  "alpn": "$ALPN", 
+  "insecure": true,
+  "recv_window_conn": 15728640,
+  "recv_window": 67108864
+}
+EOF
 sudo cp -rf $SERVICE_PATH /etc/systemd/system/
 sudo chown nobody.nogroup $INSTALL_PATH -R
 sudo chmod +x $BINARY_PATH
 sudo sysctl -w net.core.rmem_max=4000000
 sudo systemctl enable hysteria.service
 sudo systemctl restart hysteria.service
+echo PASSWORD $PASSWORD
+echo OBFS $OBFS
+echo ALPN $ALPN
+
