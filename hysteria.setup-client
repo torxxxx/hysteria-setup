@@ -3,7 +3,7 @@ INSTALL_PATH=$HOME/env/hysteria
 BINARY_PATH=$INSTALL_PATH/hysteria-linux-amd64
 SERVICE_PATH=$INSTALL_PATH/hysteria.service
 SERVICE_V6_PATH=$INSTALL_PATH/hysteriav6.service
-LATEST_RELEASE_SITE=$(curl https://github.com/HyNetwork/hysteria/releases/latest  | grep -oP "http.+.\d{1}")
+LATEST_RELEASE_SITE=$(curl -L https://github.com/HyNetwork/hysteria/releases/latest  | grep -oP "https://github.com.+releases.+v[0-9].[0-9].[0-9]")
 if [ ! $1 ]
 then
  echo "Please input the ip address and ports!" 
